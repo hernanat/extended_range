@@ -6,8 +6,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run the default task
+          name: Install gem dependencies
+          command: bundle install
+      - run:
+          name: Rubocop
+          command: bundle exec rubocop
+      - run:
+          name: RSpec Tests
           command: |
-            gem install bundler -v 2.2.22
-            bundle install
-            bundle exec rake
+            bundle exec rspec --profile 10 \
+              --format RspecJunitFormatter \
+              --out test_results/rspec.xml \
+              --format documentation \
+              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
