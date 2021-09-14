@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "extended_range/version"
+require_relative "core_extensions/range/operations"
+require_relative "core_extensions/range/checks"
 
-module ExtendedRange
-  class Error < StandardError; end
-  # Your code goes here...
-end
+Range.include CoreExtensions::Range::Operations
+Range.include CoreExtensions::Range::Checks
