@@ -1,21 +1,37 @@
 version: 2.1
+
 jobs:
-  build:
+  test:
+    parameters:
+      ruby-version:
+        type: string
     docker:
-      - image: ruby:3.0.2
+      - image: cimg/ruby:<< parameters.ruby-version >>
+        environment:
+          BUNDLE_JOBS: 1
+          BUNDLE_RETRY: 3
+          BUNDLE_PATH: vendor/bundle
+
     steps:
       - checkout
+
       - run:
-          name: Install gem dependencies
-          command: bundle install
+          name: run setup
+          command: bin/setup
+
       - run:
-          name: Rubocop
-          command: bundle exec rubocop
-      - run:
-          name: RSpec Tests
+          name: Run rspec in parallel
           command: |
             bundle exec rspec --profile 10 \
-              --format RspecJunitFormatter \
-              --out test_results/rspec.xml \
-              --format documentation \
-              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+                              --format RspecJunitFormatter \
+                              --out test_results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+
+workflows:
+  build_and_test:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              ruby-version: ["2.7", "3.0"]
